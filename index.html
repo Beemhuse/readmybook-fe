@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech API Example</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Read-my-book app</h1>
+    <div>
+        <input class="button-78" type="file" id="fileInput">
+        <button class="button-63" role="button" onclick="uploadFile()">Upload File</button>
+
+        <!-- <button onclick="playAudio()">Play</button>
+        <button onclick="pauseAudio()">Pause</button>
+        <button onclick="stopAudio()">Stop</button> -->
+        <!-- <audio id="audioPlayer" controls>
+            Your browser does not support the audio element.
+        </audio> -->
+
+    </div>
+
+    <script>
+        let audioPlayer;
+        let audioData;
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tts/', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    if (data.mp3_data) {
+                        console.log(data.mpp3_data)
+
+                        audioData = atob(data.mp3_data);
+                        audioPlayer = document.getElementById('audioPlayer');
+                        const blob = new Blob([audioData], { type: 'audio/mpeg' });
+                        audioPlayer.src = URL.createObjectURL(blob);
+                        audioPlayer.load(); // Load the audio
+                    } else {
+                        console.error('Error: No MP3 data received from the server.');
+                    }
+                } else {
+                    console.error('Error:', data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        }
+
+        function playAudio() {
+            if (audioPlayer) {
+                audioPlayer.play();
+            }
+        }
+
+        function pauseAudio() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+            }
+        }
+
+        function stopAudio() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+        }
+    </script>
+</body>
+</html>
+
