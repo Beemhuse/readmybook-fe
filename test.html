@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text to Speech</title>
+</head>
+<body>
+    <textarea id="textInput" rows="5" cols="50"></textarea><br>
+    <button id="convertButton">Convert to Speech</button><br>
+    <audio id="audioPlayer" controls></audio>
+
+    <script>
+        const convertButton = document.getElementById('convertButton');
+        const textInput = document.getElementById('textInput');
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        convertButton.addEventListener('click', async () => {
+            const text = textInput.value;
+            if (text) {
+                try {
+                    const response = await fetch('http://127.0.0.1:8000/text-to-speech/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ text: text }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const mp3Data = data.mp3_data;
+
+                        const blob = new Blob([new Uint8Array(mp3Data)], { type: 'audio/mpeg' });
+                        const audioUrl = URL.createObjectURL(blob);
+
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.play();
+                    } else {
+                        console.error('Error converting text to speech:', response.statusText);
+                    }
+                } catch (error) {
+                    console.error('An error occurred:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
